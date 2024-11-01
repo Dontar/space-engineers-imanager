@@ -48,6 +48,7 @@ namespace IngameScript
         public Program()
         {
             Runtime.UpdateFrequency = UpdateFrequency.Update10;
+            TaskManager.AddTask(Util.DisplayLogo("IManager", Me.GetSurface(0)));
 
             if (manageAssemblers)
             {

@@ -222,6 +222,7 @@ namespace IngameScript
                     var size = screen.MeasureStringInPixels(new StringBuilder(pbLabel), screen.Font, screen.FontSize);
                     screen.Alignment = TextAlignment.CENTER;
                     screen.ContentType = ContentType.TEXT_AND_IMAGE;
+                    screen.TextPadding = 0f;
                     screen.WriteText(string.Join("", Enumerable.Repeat("\n", (int)(screen.SurfaceSize.Y / size.Y))) + pbLabel + progress.Current);
                     yield return null;
                 }
