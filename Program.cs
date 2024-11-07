@@ -42,9 +42,6 @@ namespace IngameScript
         // end of config
         #endregion
 
-        private QuotaManager quotaManager;
-        private RefiningManager refiningManager;
-        private InventoryManager inventoryManager;
         public Program()
         {
             Runtime.UpdateFrequency = UpdateFrequency.Update10;
@@ -52,20 +49,17 @@ namespace IngameScript
 
             if (manageAssemblers)
             {
-                quotaManager = new QuotaManager(this);
-                TaskManager.AddTask(quotaManager.Run());
+                TaskManager.AddTask(QuotaManager());
             }
 
             if (manageRefineries)
             {
-                refiningManager = new RefiningManager(this);
-                TaskManager.AddTask(refiningManager.Run());
+                TaskManager.AddTask(RefineriesManager());
             }
 
             if (manageInventories)
             {
-                inventoryManager = new InventoryManager(this);
-                TaskManager.AddTask(inventoryManager.Run());
+                TaskManager.AddTask(InventoryManager());
             }
         }
 
@@ -73,7 +67,7 @@ namespace IngameScript
         {
             if (!updateSource.HasFlag(UpdateType.Update10)) return;
             TaskManager.RunTasks(Runtime.TimeSinceLastRun);
-            Echo(StatusManager.RenderStatus(Runtime));
+            Echo(RenderStatus(Runtime));
         }
     }
 }
