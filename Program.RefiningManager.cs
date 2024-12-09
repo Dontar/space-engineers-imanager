@@ -1,5 +1,6 @@
 using Sandbox.ModAPI.Ingame;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using VRage.Game.ModAPI.Ingame;
 using VRage.Game.ModAPI.Ingame.Utilities;
@@ -8,8 +9,8 @@ namespace IngameScript
 {
     partial class Program
     {
-        public List<IMyRefinery> Refineries => Memo.Of(() => Util.GetBlocks<IMyRefinery>(b => b.CubeGrid == Me.CubeGrid), "refineries", 10);
-        public IEnumerable<object> RefineriesManager()
+        List<IMyRefinery> Refineries => Memo.Of(() => Util.GetBlocks<IMyRefinery>(b => b.CubeGrid == Me.CubeGrid), "refineries", 10);
+        IEnumerable<object> RefineriesManager()
         {
             var refineries = Refineries;
             CurrentStatus.RefineriesCount = refineries.Count.ToString();
@@ -19,6 +20,7 @@ namespace IngameScript
                 foreach (var refinery in refineries)
                 {
                     CurrentStatus.CurrentRefineryName = refinery.CustomName;
+                    var inventory = refinery.InputInventory;
                     var priorityList = Memo.Of(() =>
                     {
                         var ini = new MyIni();
@@ -28,10 +30,9 @@ namespace IngameScript
                         };
                         var iniKeys = new List<MyIniKey>();
                         ini.GetKeys(iniKeys);
+                        iniKeys.Sort((a, b) => ini.Get(b).ToInt32().CompareTo(ini.Get(a).ToInt32()));
                         return iniKeys.ToDictionary(k => k.Name, v => ini.Get(v).ToInt32());
                     }, refinery.CustomName, Memo.Refs(refinery.CustomData));
-
-                    var inventory = refinery.InputInventory;
 
                     var items = new List<MyInventoryItem>();
                     inventory.GetItems(items);

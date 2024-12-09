@@ -26,10 +26,10 @@ namespace IngameScript
 {
     partial class Program
     {
-        private const string AM = "AmmoMagazine";
-        private const string PGO = "PhysicalGunObject";
-        private const string C = "Component";
-        private struct ItemMeta
+        const string AM = "AmmoMagazine";
+        const string PGO = "PhysicalGunObject";
+        const string C = "Component";
+        struct ItemMeta
         {
             public string type;
             public string BlueprintId;
@@ -49,9 +49,8 @@ namespace IngameScript
             {
                 return MyDefinitionId.Parse($"MyObjectBuilder_BlueprintDefinition/{BlueprintId}");
             }
-
         }
-        private readonly Dictionary<string, ItemMeta> Items = new Dictionary<string, ItemMeta> {
+        readonly Dictionary<string, ItemMeta> Items = new Dictionary<string, ItemMeta> {
                 { "Steel Plate",           new ItemMeta(C, "SteelPlate")},
                 { "Interior Plate",        new ItemMeta(C, "InteriorPlate")},
                 { "Construction Comp.",    new ItemMeta(C, "ConstructionComponent", "Construction")},
@@ -134,7 +133,7 @@ namespace IngameScript
                 { "Hand Drill",            new ItemMeta(PGO, "Position0050_HandDrill", "HandDrillItem")},
             };
 
-        private Dictionary<string, int> QuotaList => Memo.Of(() =>
+        Dictionary<string, int> QuotaList => Memo.Of(() =>
         {
             var ini = new MyIni();
             if (!ini.TryParse(Me.CustomData) || Me.CustomData == "")
@@ -156,8 +155,8 @@ namespace IngameScript
 
         }, "quotaConfig", Memo.Refs(Me.CustomData));
 
-        private List<IMyAssembler> Assemblers => Memo.Of(() => Util.GetBlocks<IMyAssembler>(AssemblerFilter), "assemblers", 4);
-        private IEnumerable<IMyInventory> Inventories => Memo.Of(() =>
+        List<IMyAssembler> Assemblers => Memo.Of(() => Util.GetBlocks<IMyAssembler>(AssemblerFilter), "assemblers", 4);
+        IEnumerable<IMyInventory> Inventories => Memo.Of(() =>
         {
             var invBlocks = Util.GetBlocks<IMyTerminalBlock>(block => block.HasInventory && block.CubeGrid == Me.CubeGrid);
             return invBlocks.SelectMany(block =>
@@ -175,12 +174,12 @@ namespace IngameScript
             });
         }, "inventories", 4);
 
-        private struct ItemPriority
+        struct ItemPriority
         {
             public ItemMeta Item;
             public int Percentage;
         }
-        public IEnumerable<object> QuotaManager()
+        IEnumerable<object> QuotaManager()
         {
             var quotaList = QuotaList;
             while (quotaList.Equals(QuotaList))
@@ -203,7 +202,7 @@ namespace IngameScript
             }
         }
 
-        private void SortAssemblerQueue(List<ItemPriority> priorityList)
+        void SortAssemblerQueue(List<ItemPriority> priorityList)
         {
             foreach (var assembler in Assemblers)
             {
@@ -223,7 +222,7 @@ namespace IngameScript
             }
         }
 
-        private bool AssemblerFilter(IMyAssembler block)
+        bool AssemblerFilter(IMyAssembler block)
         {
             return block.CubeGrid == Me.CubeGrid
                 && block.CooperativeMode == false
@@ -231,7 +230,7 @@ namespace IngameScript
                 && (useSurvivalKits || block.BlockDefinition.TypeIdString != "MyObjectBuilder_SurvivalKit");
         }
 
-        private void QueueNeededItems(ItemMeta item, decimal neededAmount)
+        void QueueNeededItems(ItemMeta item, decimal neededAmount)
         {
             CurrentStatus.AssemblersCount = Assemblers.Count.ToString();
 
@@ -257,7 +256,7 @@ namespace IngameScript
             }
         }
 
-        private int[] GetInventoryItemsNeeded(ItemMeta item)
+        int[] GetInventoryItemsNeeded(ItemMeta item)
         {
             int inventoryItemAmount = 0;
             int queuedItemAmount = 0;

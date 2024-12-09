@@ -27,7 +27,7 @@ namespace IngameScript
 {
     partial class Program
     {
-        private class ContainersMeta
+        class ContainersMeta
         {
             public IEnumerable<IMyInventory> Inventories;
             // public IEnumerable<IMyGasGenerator> H2Generators;
@@ -40,7 +40,7 @@ namespace IngameScript
             public IEnumerable<IMyCargoContainer> AmmoContainers;
         }
 
-        private ContainersMeta Containers => Memo.Of(() =>
+        ContainersMeta Containers => Memo.Of(() =>
         {
             var inventoryBlocks = Util.GetBlocks<IMyTerminalBlock>(block => block.HasInventory && block.CubeGrid == Me.CubeGrid);
             var inventories = inventoryBlocks.Where(b =>
@@ -75,7 +75,7 @@ namespace IngameScript
             return containersMeta;
         }, "ContainersMeta", 12);
 
-        public IEnumerable<object> InventoryManager()
+        IEnumerable<object> InventoryManager()
         {
             var containers = Containers;
             CurrentStatus.Containers = Containers.CargoContainers.Count();
@@ -129,12 +129,12 @@ namespace IngameScript
             }
         }
 
-        private bool IsInputInventory(IMyInventory i)
+        bool IsInputInventory(IMyInventory i)
         {
             return i.Owner is IMyProductionBlock && (i.Owner as IMyProductionBlock).InputInventory == i;
         }
 
-        private bool IsFull(IMyInventory i)
+        bool IsFull(IMyInventory i)
         {
             return i.VolumeFillFactor >= 0.95f;
         }

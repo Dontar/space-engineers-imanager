@@ -26,7 +26,7 @@ namespace IngameScript
 {
     partial class Program
     {
-        public class StatusData
+        class StatusData
         {
             public string AssemblersCount;
             public string RefineriesCount;
@@ -44,20 +44,20 @@ namespace IngameScript
             // public string CurrentMaterial;
         }
 
-        public static readonly StatusData CurrentStatus = new StatusData();
+        static readonly StatusData CurrentStatus = new StatusData();
 
-        private const string BIG_DIVIDER = "===============================";
-        private const string SMALL_DIVIDER = "-----------------------";
+        const string BIG_DIVIDER = "===============================";
+        const string SMALL_DIVIDER = "-----------------------";
 
-        private static readonly IEnumerator<string> Spinner = new string[] { "/", "-", "\\", "|" }.AsEnumerable().GetEnumerator();
+        static readonly IEnumerator<string> Spinner = new string[] { "/", "-", "\\", "|" }.AsEnumerable().GetEnumerator();
 
-        public static void Log(string message)
+        static void Log(string message)
         {
             CurrentStatus.debug.Clear();
             CurrentStatus.debug.AppendLine(message);
         }
 
-        public static string RenderStatus(IMyGridProgramRuntimeInfo Runtime)
+        static string RenderStatus(IMyGridProgramRuntimeInfo Runtime)
         {
             if (!Spinner.MoveNext())
             {
