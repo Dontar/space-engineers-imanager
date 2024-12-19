@@ -42,7 +42,7 @@ namespace IngameScript
 
         ContainersMeta Containers => Memo.Of(() =>
         {
-            var inventoryBlocks = Util.GetBlocks<IMyTerminalBlock>(block => block.HasInventory && block.CubeGrid == Me.CubeGrid);
+            var inventoryBlocks = Util.GetBlocks<IMyTerminalBlock>(block => block.HasInventory && block.IsSameConstructAs(Me));
             var inventories = inventoryBlocks.Where(b =>
                 !(b is IMyGasGenerator)
                 && !(b is IMyReactor)
@@ -65,15 +65,15 @@ namespace IngameScript
                 // H2Generators = inventoryBlocks.OfType<IMyGasGenerator>(),
                 // Reactors = inventoryBlocks.OfType<IMyReactor>(),
                 CargoContainers = inventoryBlocks.OfType<IMyCargoContainer>().Where(c => c.BlockDefinition.SubtypeId.Contains("Container")),
-                OreContainers = inventoryBlocks.OfType<IMyCargoContainer>().Where(c => c.CustomName.Contains(oresTag)),
-                IngotContainers = inventoryBlocks.OfType<IMyCargoContainer>().Where(c => c.CustomName.Contains(ingotsTag)),
-                ComponentContainers = inventoryBlocks.OfType<IMyCargoContainer>().Where(c => c.CustomName.Contains(componentsTag)),
-                ToolsContainers = inventoryBlocks.OfType<IMyCargoContainer>().Where(c => c.CustomName.Contains(toolsTag)),
-                AmmoContainers = inventoryBlocks.OfType<IMyCargoContainer>().Where(c => c.CustomName.Contains(ammoTag))
+                OreContainers = inventoryBlocks.OfType<IMyCargoContainer>().Where(c => Util.IsTagged(c, oresTag)),
+                IngotContainers = inventoryBlocks.OfType<IMyCargoContainer>().Where(c => Util.IsTagged(c, ingotsTag)),
+                ComponentContainers = inventoryBlocks.OfType<IMyCargoContainer>().Where(c => Util.IsTagged(c, componentsTag)),
+                ToolsContainers = inventoryBlocks.OfType<IMyCargoContainer>().Where(c => Util.IsTagged(c, toolsTag)),
+                AmmoContainers = inventoryBlocks.OfType<IMyCargoContainer>().Where(c => Util.IsTagged(c, ammoTag)),
 
             };
             return containersMeta;
-        }, "ContainersMeta", 12);
+        }, "ContainersMeta", 100);
 
         IEnumerable<object> InventoryManager()
         {
