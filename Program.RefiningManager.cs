@@ -9,11 +9,11 @@ namespace IngameScript
 {
     partial class Program
     {
-        List<IMyRefinery> Refineries => Memo.Of(() => Util.GetBlocks<IMyRefinery>(b => b.CubeGrid == Me.CubeGrid), "refineries", 10);
+        IEnumerable<IMyRefinery> Refineries => Memo.Of(() => Util.GetBlocks<IMyRefinery>(b => b.CubeGrid == Me.CubeGrid), "refineries", 10);
         IEnumerable<object> RefineriesManager()
         {
             var refineries = Refineries;
-            CurrentStatus.RefineriesCount = refineries.Count.ToString();
+            CurrentStatus.RefineriesCount = refineries.Count().ToString();
 
             while (refineries.Equals(Refineries))
             {

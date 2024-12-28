@@ -155,7 +155,7 @@ namespace IngameScript
 
         }, "quotaConfig", Memo.Refs(Me.CustomData));
 
-        List<IMyAssembler> Assemblers => Memo.Of(() => Util.GetBlocks<IMyAssembler>(AssemblerFilter), "assemblers", 4);
+        IEnumerable<IMyAssembler> Assemblers => Memo.Of(() => Util.GetBlocks<IMyAssembler>(AssemblerFilter), "assemblers", 4);
         IEnumerable<IMyInventory> Inventories => Memo.Of(() =>
         {
             var invBlocks = Util.GetBlocks<IMyTerminalBlock>(block => block.HasInventory && block.CubeGrid == Me.CubeGrid);
@@ -232,7 +232,7 @@ namespace IngameScript
 
         void QueueNeededItems(ItemMeta item, decimal neededAmount)
         {
-            CurrentStatus.AssemblersCount = Assemblers.Count.ToString();
+            CurrentStatus.AssemblersCount = Assemblers.Count().ToString();
 
             var BlueprintId = item.GetBlueprintId();
             var assemblers = Assemblers.Where(a => a.CanUseBlueprint(BlueprintId));
