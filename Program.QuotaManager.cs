@@ -133,7 +133,7 @@ namespace IngameScript
                 { "Hand Drill",            new ItemMeta(PGO, "Position0050_HandDrill", "HandDrillItem")},
             };
 
-        Dictionary<string, int> QuotaList => Memo.Of(() =>
+        Dictionary<string, int> Config => Memo.Of(() =>
         {
             var ini = new MyIni();
             if (!ini.TryParse(Me.CustomData) || Me.CustomData == "")
@@ -142,23 +142,19 @@ namespace IngameScript
                 {
                     var sectionName = entry.Value.type == "AmmoMagazine" ? "Ammo" : entry.Value.type == "PhysicalGunObject" ? "Tools" : "Components";
                     ini.Set(sectionName, entry.Key, 0);
-                    Me.CustomData = ini.ToString();
                 }
+                Me.CustomData = ini.ToString();
             }
             var iniKeys = new List<MyIniKey>();
             ini.GetKeys(iniKeys);
-            var filteredIniKeys = iniKeys
-                .Where(key => ini.Get(key).ToInt32() > 0)
-                .ToDictionary(k => k.Name, v => ini.Get(v).ToInt32());
-            CurrentStatus.QuotaItemsCount = filteredIniKeys.Count;
-            return filteredIniKeys;
+            var result = iniKeys.ToDictionary(k => k.Name, v => ini.Get(v).ToInt32());
+            return result;
+        }, "config", Memo.Refs(Me.CustomData));
 
-        }, "quotaConfig", Memo.Refs(Me.CustomData));
-
-        IEnumerable<IMyAssembler> Assemblers => Memo.Of(() => Util.GetBlocks<IMyAssembler>(AssemblerFilter), "assemblers", 4);
+        IEnumerable<IMyAssembler> Assemblers => Memo.Of(() => Util.GetBlocks<IMyAssembler>(AssemblerFilter), "assemblers", 100);
         IEnumerable<IMyInventory> Inventories => Memo.Of(() =>
         {
-            var invBlocks = Util.GetBlocks<IMyTerminalBlock>(block => block.HasInventory && block.CubeGrid == Me.CubeGrid);
+            var invBlocks = Util.GetBlocks<IMyTerminalBlock>(block => block.HasInventory && block.IsSameConstructAs(Me) && Assemblers.Any(a => a.OutputInventory.IsConnectedTo(block.GetInventory())));
             return invBlocks.SelectMany(block =>
             {
                 var inventories = new List<IMyInventory>();
@@ -171,38 +167,40 @@ namespace IngameScript
                     }
                 }
                 return inventories;
-            });
+            }).ToArray();
         }, "inventories", 4);
 
-        struct ItemPriority
-        {
-            public ItemMeta Item;
-            public int Percentage;
-        }
         IEnumerable<object> QuotaManager()
         {
-            var quotaList = QuotaList;
-            while (quotaList.Equals(QuotaList))
+            var quotaList = Config;
+            while (quotaList.Equals(Config))
             {
-                var priorityList = new List<ItemPriority>();
+                var priorityList = new Dictionary<MyDefinitionId, int>();
                 foreach (var quotaItem in quotaList)
                 {
-                    int quota = quotaItem.Value;
+                    int quota = Math.Max(quotaItem.Value, 0);
+                    var Disassemble = quotaItem.Value < 0;
                     var item = Items[quotaItem.Key];
                     var currentAmounts = GetInventoryItemsNeeded(item);
-                    var neededAmount = Math.Max(0, quota - currentAmounts[0] - currentAmounts[1]);
-                    priorityList.Add(new ItemPriority { Item = item, Percentage = currentAmounts[0] * 100 / quota });
+                    var neededAmount = quota - (currentAmounts[0] - currentAmounts[1]);
 
-                    QueueNeededItems(item, neededAmount);
+                    if (neededAmount > 0)
+                    {
+                        priorityList.Add(item.GetBlueprintId(), currentAmounts[0] * 100 / quota);
 
+                        QueueItems(item, neededAmount);
+                    }
+                    else if (Disassemble && neededAmount < 0)
+                    {
+                        QueueItems(item, Math.Abs(neededAmount), MyAssemblerMode.Disassembly);
+                    }
                 }
-                if (priorityList.Count > 0)
-                    SortAssemblerQueue(priorityList);
+                if (priorityList.Count > 0) SortAssemblerQueue(priorityList);
                 yield return null;
             }
         }
 
-        void SortAssemblerQueue(List<ItemPriority> priorityList)
+        void SortAssemblerQueue(Dictionary<MyDefinitionId, int> priorityList)
         {
             foreach (var assembler in Assemblers)
             {
@@ -210,13 +208,8 @@ namespace IngameScript
                 assembler.GetQueue(qItems);
                 qItems.Sort((a, b) =>
                 {
-                    var aPriority = priorityList.Find(p => p.Item.GetBlueprintId() == a.BlueprintId).Percentage;
-                    var bPriority = priorityList.Find(p => p.Item.GetBlueprintId() == b.BlueprintId).Percentage;
-                    var result = aPriority.CompareTo(bPriority);
-                    if (result < 0)
-                    {
-                        assembler.MoveQueueItemRequest(a.ItemId, qItems.IndexOf(b));
-                    }
+                    var result = priorityList[a.BlueprintId].CompareTo(priorityList[b.BlueprintId]);
+                    if (result < 0) assembler.MoveQueueItemRequest(a.ItemId, qItems.IndexOf(b));
                     return result;
                 });
             }
@@ -224,35 +217,39 @@ namespace IngameScript
 
         bool AssemblerFilter(IMyAssembler block)
         {
-            return block.CubeGrid == Me.CubeGrid
-                && block.CooperativeMode == false
-                && block.Mode == MyAssemblerMode.Assembly
+            return block.IsSameConstructAs(Me)
+                // && block.CooperativeMode == false
+                // && block.Mode == MyAssemblerMode.Assembly
                 && (useSurvivalKits || block.BlockDefinition.TypeIdString != "MyObjectBuilder_SurvivalKit");
         }
 
-        void QueueNeededItems(ItemMeta item, decimal neededAmount)
+        void QueueItems(ItemMeta item, decimal neededAmount, MyAssemblerMode mode = MyAssemblerMode.Assembly)
         {
             CurrentStatus.AssemblersCount = Assemblers.Count().ToString();
 
             var BlueprintId = item.GetBlueprintId();
-            var assemblers = Assemblers.Where(a => a.CanUseBlueprint(BlueprintId));
+            var assemblers = Assemblers.Where(a =>
+                a.CanUseBlueprint(BlueprintId)
+                && a.CooperativeMode == false
+                && (a.Mode == mode || a.IsQueueEmpty)
+            );
             var count = assemblers.Count();
 
             if (neededAmount < 1 || count < 1) return;
 
             if (neededAmount < 2)
             {
-                assemblers.First().AddQueueItem(BlueprintId, neededAmount);
+                var assembler = assemblers.First();
+                assembler.Mode = mode;
+                assembler.AddQueueItem(BlueprintId, neededAmount);
                 return;
             }
 
             var amount = Math.Round(neededAmount / count);
-            if (amount >= 1)
+            foreach (var assembler in assemblers)
             {
-                foreach (var assembler in assemblers)
-                {
-                    assembler.AddQueueItem(BlueprintId, amount);
-                }
+                assembler.Mode = mode;
+                assembler.AddQueueItem(BlueprintId, amount);
             }
         }
 

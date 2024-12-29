@@ -29,8 +29,8 @@ namespace IngameScript
         #region mdk preserve
         // Configuration
         bool manageAssemblers = true;
-        bool useSurvivalKits = false;
-        bool manageRefineries = true;
+        bool useSurvivalKits = true;
+        bool manageRefineries = false;
         bool manageInventories = true;
 
         string oresTag = "Ores";
