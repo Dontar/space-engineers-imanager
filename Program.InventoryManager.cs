@@ -46,6 +46,7 @@ namespace IngameScript
             var inventories = inventoryBlocks.Where(b =>
                 !(b is IMyGasGenerator)
                 && !(b is IMyReactor)
+                && !(b is IMyShipWelder)
                 && !(b is IMyParachute)
                 && (b.BlockDefinition.TypeIdString != "MyObjectBuilder_LargeMissileTurret")
                 && (b.BlockDefinition.TypeIdString != "MyObjectBuilder_LargeGatlingTurret")
@@ -123,8 +124,8 @@ namespace IngameScript
                             if (freeContainer != default(IMyCargoContainer))
                                 inventory.TransferItemTo(freeContainer.GetInventory(), item);
                         }
+                        yield return null;
                     }
-                    yield return null;
                 }
             }
         }

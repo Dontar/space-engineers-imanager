@@ -29,7 +29,7 @@ namespace IngameScript
         #region mdk preserve
         // Configuration
         bool manageAssemblers = true;
-        bool useSurvivalKits = true;
+        bool useSurvivalKits = false;
         bool manageRefineries = false;
         bool manageInventories = true;
 
