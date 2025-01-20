@@ -10,6 +10,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
+using System.Threading.Tasks;
 using VRage;
 using VRage.Collections;
 using VRage.Game;
@@ -46,11 +47,11 @@ namespace IngameScript
         {
             Runtime.UpdateFrequency = UpdateFrequency.Update10;
             Util.Init(this);
-            TaskManager.AddTask(Util.DisplayLogo("IManager", Me.GetSurface(0)));
+            TaskManager.AddTask(Util.DisplayLogo("IManager", Me.GetSurface(0)), 1.7f);
 
             if (manageAssemblers)
             {
-                TaskManager.AddTask(QuotaManager());
+                TaskManager.AddTask(QuotaManager(), 1.5f);
             }
 
             if (manageRefineries)
@@ -60,15 +61,16 @@ namespace IngameScript
 
             if (manageInventories)
             {
-                TaskManager.AddTask(InventoryManager());
+                TaskManager.AddTask(InventoryManager(), 1.3f);
             }
+
+            TaskManager.AddTask(Util.StatusMonitor(this));
         }
 
         public void Main(string argument, UpdateType updateSource)
         {
             if (!updateSource.HasFlag(UpdateType.Update10)) return;
             TaskManager.RunTasks(Runtime.TimeSinceLastRun);
-            Echo(RenderStatus(Runtime));
         }
     }
 }

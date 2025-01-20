@@ -49,24 +49,16 @@ namespace IngameScript
         const string BIG_DIVIDER = "===============================";
         const string SMALL_DIVIDER = "-----------------------";
 
-        static readonly IEnumerator<string> Spinner = new string[] { "/", "-", "\\", "|" }.AsEnumerable().GetEnumerator();
-
         static void Log(string message)
         {
             CurrentStatus.debug.Clear();
             CurrentStatus.debug.AppendLine(message);
         }
 
-        static string RenderStatus(IMyGridProgramRuntimeInfo Runtime)
+        IEnumerable RenderStatus(IMyGridProgramRuntimeInfo Runtime)
         {
-            if (!Spinner.MoveNext())
-            {
-                Spinner.Reset();
-                Spinner.MoveNext();
-            }
-
-            var runtimeText = new StringBuilder();
-            runtimeText.AppendLine("Dontar's Inventory Manager - " + Spinner.Current);
+            var runtimeText = Util.StatusText;
+            runtimeText.AppendLine("Dontar's Inventory Manager");
             runtimeText.AppendLine(BIG_DIVIDER);
             runtimeText.AppendLine();
             runtimeText.AppendLine("QuotaManager");
@@ -89,32 +81,10 @@ namespace IngameScript
             runtimeText.AppendLine($"    Ingots: {CurrentStatus.IngotContainers}");
             runtimeText.AppendLine($"    Components: {CurrentStatus.CompContainers}");
             runtimeText.AppendLine($"    Tools: {CurrentStatus.ToolsContainers}");
-            // runtimeText.AppendLine($"  Inventory: {CurrentStatus.CurrentInventory}");
-            // runtimeText.AppendLine($"    Material: {CurrentStatus.CurrentMaterial}");
-            runtimeText.AppendLine();
-            // runtimeText.AppendLine("CacheManager");
-            // runtimeText.AppendLine(SMALL_DIVIDER);
-            // if (CurrentStatus.cache != null)
-            // {
-            //     foreach (var cacheItem in CurrentStatus.cache)
-            //     {
-            //         runtimeText.AppendLine($"  {cacheItem.Key}: {cacheItem.Value.Age}");
-            //     }
-            // }
-            // else
-            // {
-            //     runtimeText.AppendLine("  No cache items found yet.");
-            // }
-            // runtimeText.AppendLine();
-            runtimeText.AppendLine("Runtime Info");
-            runtimeText.AppendLine(SMALL_DIVIDER);
-            runtimeText.AppendLine($"Last Run: {Runtime.LastRunTimeMs}ms");
-            runtimeText.AppendLine($"Time Since Last Run: {Runtime.TimeSinceLastRun.TotalMilliseconds}ms");
-            runtimeText.AppendLine($"Instruction Count: {Runtime.CurrentInstructionCount}/{Runtime.MaxInstructionCount}");
-            runtimeText.AppendLine();
+
             runtimeText.AppendLine(CurrentStatus.debug.ToString());
 
-            return runtimeText.ToString();
+            yield return Util.StatusMonitor(this);
         }
     }
 }

@@ -137,7 +137,7 @@ namespace IngameScript
 
         bool IsFull(IMyInventory i)
         {
-            return i.VolumeFillFactor >= 0.95f;
+            return i.VolumeFillFactor >= 0.98f;
         }
     }
 }

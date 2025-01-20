@@ -180,7 +180,7 @@ namespace IngameScript
                 for (int i = 0; i < b.InventoryCount; i++)
                 {
                     var inventory = b.GetInventory(i);
-                    if (inventory != null && inventory.ItemCount > 0)
+                    if (inventory != null)
                     {
                         yield return inventory;
                     }
@@ -270,14 +270,15 @@ namespace IngameScript
         int[] GetInventoryItemsNeeded(ItemMeta item)
         {
             var inventoryItemAmount = Inventories.Sum(inv => inv.GetItemAmount(item.GetItemType()).ToIntSafe());
-            int queuedItemAmount = 0;
 
-            foreach (var assembler in Assemblers)
-            {
+            Func<MyProductionItem, int> sum = qItem => qItem.Amount.ToIntSafe();
+            Func<MyProductionItem, bool> where = qItem => qItem.BlueprintId == item.GetBlueprintId();
+            var queuedItemAmount = Assemblers.Sum(a => {
                 var qItems = new List<MyProductionItem>();
-                assembler.GetQueue(qItems);
-                queuedItemAmount += qItems.Where(qItem => qItem.BlueprintId == item.GetBlueprintId()).Sum(qItem => qItem.Amount.ToIntSafe());
-            }
+                a.GetQueue(qItems);
+                return qItems.Where(where).Sum(sum);
+            });
+
             return new int[] { inventoryItemAmount, queuedItemAmount };
         }
     }
