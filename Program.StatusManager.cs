@@ -29,9 +29,6 @@ namespace IngameScript
         class StatusData
         {
             public string AssemblersCount;
-            public string RefineriesCount;
-            public string CurrentRefineryName;
-            public string CurrentRefineryItems;
             public int QuotaItemsCount;
             // public Dictionary<string, Memo.CacheValue> cache = Memo._dependencyCache;
             public StringBuilder debug = new StringBuilder();
@@ -65,13 +62,6 @@ namespace IngameScript
             runtimeText.AppendLine(SMALL_DIVIDER);
             runtimeText.AppendLine($"  Managing: {CurrentStatus.AssemblersCount ?? "0"} Assemblers");
             runtimeText.AppendLine($"  Processing: {CurrentStatus.QuotaItemsCount} Quotas");
-            runtimeText.AppendLine();
-            runtimeText.AppendLine("RefineryManager");
-            runtimeText.AppendLine(SMALL_DIVIDER);
-            runtimeText.AppendLine($"  Managing: {CurrentStatus.RefineriesCount} Refineries");
-            runtimeText.AppendLine("  Processing:");
-            runtimeText.AppendLine($"    Refinery: {CurrentStatus.CurrentRefineryName ?? "None"}");
-            runtimeText.AppendLine($"    Sortable: {CurrentStatus.CurrentRefineryItems ?? "0"}");
             runtimeText.AppendLine();
             runtimeText.AppendLine("InventoryManager");
             runtimeText.AppendLine(SMALL_DIVIDER);
