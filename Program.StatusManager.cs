@@ -55,9 +55,9 @@ namespace IngameScript
             CurrentStatus.debug.AppendLine(message);
         }
 
-        IEnumerable RenderStatus(IMyGridProgramRuntimeInfo Runtime)
+        void RenderStatus()
         {
-            var runtimeText = Util.StatusText;
+            var runtimeText = new StringBuilder();
             runtimeText.AppendLine("Dontar's Inventory Manager");
             runtimeText.AppendLine(BIG_DIVIDER);
             runtimeText.AppendLine();
@@ -84,7 +84,7 @@ namespace IngameScript
 
             runtimeText.AppendLine(CurrentStatus.debug.ToString());
 
-            yield return Util.StatusMonitor(this);
+            Util.Echo(runtimeText.ToString());
         }
     }
 }

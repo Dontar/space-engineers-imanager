@@ -31,7 +31,6 @@ namespace IngameScript
         // Configuration
         bool manageAssemblers = true;
         bool useSurvivalKits = false;
-        bool manageRefineries = false;
         bool manageInventories = true;
 
         string oresTag = "Ores";
@@ -45,18 +44,13 @@ namespace IngameScript
 
         public Program()
         {
-            Runtime.UpdateFrequency = UpdateFrequency.Update10;
+            Runtime.UpdateFrequency = UpdateFrequency.Update100;
             Util.Init(this);
-            TaskManager.AddTask(Util.DisplayLogo("IManager", Me.GetSurface(0)), 1.7f);
+            TaskManager.AddTask(Util.StatusMonitor(this));
 
             if (manageAssemblers)
             {
                 TaskManager.AddTask(QuotaManager(), 1.5f);
-            }
-
-            if (manageRefineries)
-            {
-                TaskManager.AddTask(RefineriesManager());
             }
 
             if (manageInventories)
@@ -64,12 +58,13 @@ namespace IngameScript
                 TaskManager.AddTask(InventoryManager(), 1.3f);
             }
 
-            TaskManager.AddTask(Util.StatusMonitor(this));
+            TaskManager.AddTask(Util.DisplayLogo("IManager", Me.GetSurface(0)), 1.7f);
         }
 
         public void Main(string argument, UpdateType updateSource)
         {
-            if (!updateSource.HasFlag(UpdateType.Update10)) return;
+            if (!updateSource.HasFlag(UpdateType.Update100)) return;
+            RenderStatus();
             TaskManager.RunTasks(Runtime.TimeSinceLastRun);
         }
     }
