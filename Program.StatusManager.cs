@@ -37,6 +37,7 @@ namespace IngameScript
             public int IngotContainers;
             public int CompContainers;
             public int ToolsContainers;
+            public int AmmoContainers;
             // public string CurrentInventory;
             // public string CurrentMaterial;
         }
@@ -71,6 +72,7 @@ namespace IngameScript
             runtimeText.AppendLine($"    Ingots: {CurrentStatus.IngotContainers}");
             runtimeText.AppendLine($"    Components: {CurrentStatus.CompContainers}");
             runtimeText.AppendLine($"    Tools: {CurrentStatus.ToolsContainers}");
+            runtimeText.AppendLine($"    Ammo: {CurrentStatus.AmmoContainers}");
 
             runtimeText.AppendLine(CurrentStatus.debug.ToString());
 

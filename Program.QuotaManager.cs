@@ -133,7 +133,6 @@ namespace IngameScript
                 { "Hand Drill",            new ItemMeta(PGO, "Position0050_HandDrill", "HandDrillItem")},
             };
 
-
         struct QuotaConfig
         {
             public string Name;
@@ -158,37 +157,37 @@ namespace IngameScript
             {
                 var value = ini.Get(v).ToString().Split('/');
                 return new QuotaConfig { Name = v.Name, QuotaMin = int.Parse(value[0]), QuotaMax = int.Parse(value[1]) };
-            }).Where(v => v.QuotaMin > 0 || v.QuotaMax > -1);
+            }).Where(v => v.QuotaMin > 0 || v.QuotaMax > 0).ToArray();
 
-            CurrentStatus.QuotaItemsCount = result.Count();
+            CurrentStatus.QuotaItemsCount = result.Length;
 
-            return result.ToArray();
+            return result;
         }, "config", Memo.Refs(Me.CustomData));
 
         IEnumerable<IMyAssembler> Assemblers => Memo.Of(() =>
         {
-            var assemblers = Util.GetBlocks<IMyAssembler>(AssemblerFilter);
-            CurrentStatus.AssemblersCount = assemblers.Count().ToString();
+            var assemblers = Util.GetBlocks<IMyAssembler>(b => 
+                b.IsSameConstructAs(Me) && 
+                Util.IsNotIgnored(b) && 
+                (useSurvivalKits || b.BlockDefinition.TypeIdString != "MyObjectBuilder_SurvivalKit")
+            ).ToArray();
+            CurrentStatus.AssemblersCount = assemblers.Length.ToString();
             return assemblers;
         }, "assemblers", 100);
 
-
-        IEnumerable<IMyInventory> GetMyInventories()
+        IEnumerable<IMyInventory> Inventories => Memo.Of(() =>
         {
+            var inventories = new List<IMyInventory>();
             var blocks = Util.GetBlocks<IMyTerminalBlock>(b => b.HasInventory && Util.IsNotIgnored(b) && b.IsSameConstructAs(Me));
             foreach (var b in blocks)
             {
                 for (int i = 0; i < b.InventoryCount; i++)
                 {
-                    var inventory = b.GetInventory(i);
-                    if (inventory != null)
-                    {
-                        yield return inventory;
-                    }
+                    inventories.Add(b.GetInventory(i));
                 }
             }
-        }
-        IEnumerable<IMyInventory> Inventories => Memo.Of(() => GetMyInventories().ToArray(), "inventories", 100);
+            return inventories.ToArray();
+        }, "inventories", 100);
 
         IEnumerable<object> QuotaManager()
         {
@@ -198,7 +197,7 @@ namespace IngameScript
                 foreach (var quotaItem in quotaList)
                 {
                     var QuotaMin = quotaItem.QuotaMin;
-                    var QuotaMax = (int)MathHelper.Max(QuotaMin, quotaItem.QuotaMax);
+                    var QuotaMax = quotaItem.QuotaMax > 0 ? (int)MathHelper.Max(QuotaMin, quotaItem.QuotaMax) : 0;
                     var item = Items[quotaItem.Name];
                     var currentAmounts = GetInventoryItemsCount(item);
                     var neededAmount = QuotaMin - (currentAmounts[0] + currentAmounts[1]);
@@ -215,13 +214,6 @@ namespace IngameScript
                     yield return null;
                 }
             }
-        }
-
-        bool AssemblerFilter(IMyAssembler block)
-        {
-            return block.IsSameConstructAs(Me)
-                && Util.IsNotIgnored(block)
-                && (useSurvivalKits || block.BlockDefinition.TypeIdString != "MyObjectBuilder_SurvivalKit");
         }
 
         void QueueItems(ItemMeta item, int neededAmount, MyAssemblerMode mode = MyAssemblerMode.Assembly)

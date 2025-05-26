@@ -62,15 +62,19 @@ namespace IngameScript
 
             var containersMeta = new ContainersMeta
             {
-                Inventories = inventories,
+                Inventories = inventories.ToArray(),
                 // H2Generators = inventoryBlocks.OfType<IMyGasGenerator>(),
                 // Reactors = inventoryBlocks.OfType<IMyReactor>(),
-                CargoContainers = inventoryBlocks.OfType<IMyCargoContainer>().Where(c => c.BlockDefinition.SubtypeId.Contains("Container")),
-                OreContainers = inventoryBlocks.OfType<IMyCargoContainer>().Where(c => Util.IsTagged(c, oresTag)),
-                IngotContainers = inventoryBlocks.OfType<IMyCargoContainer>().Where(c => Util.IsTagged(c, ingotsTag)),
-                ComponentContainers = inventoryBlocks.OfType<IMyCargoContainer>().Where(c => Util.IsTagged(c, componentsTag)),
-                ToolsContainers = inventoryBlocks.OfType<IMyCargoContainer>().Where(c => Util.IsTagged(c, toolsTag)),
-                AmmoContainers = inventoryBlocks.OfType<IMyCargoContainer>().Where(c => Util.IsTagged(c, ammoTag)),
+                CargoContainers = inventoryBlocks.OfType<IMyCargoContainer>().Where(c =>
+                {
+                    var SubtypeId = c.BlockDefinition.SubtypeId;
+                    return SubtypeId.Contains("Container") || SubtypeId.Contains("Terminal");
+                }).ToArray(),
+                OreContainers = inventoryBlocks.OfType<IMyCargoContainer>().Where(c => Util.IsTagged(c, oresTag)).ToArray(),
+                IngotContainers = inventoryBlocks.OfType<IMyCargoContainer>().Where(c => Util.IsTagged(c, ingotsTag)).ToArray(),
+                ComponentContainers = inventoryBlocks.OfType<IMyCargoContainer>().Where(c => Util.IsTagged(c, componentsTag)).ToArray(),
+                ToolsContainers = inventoryBlocks.OfType<IMyCargoContainer>().Where(c => Util.IsTagged(c, toolsTag)).ToArray(),
+                AmmoContainers = inventoryBlocks.OfType<IMyCargoContainer>().Where(c => Util.IsTagged(c, ammoTag)).ToArray(),
 
             };
             return containersMeta;
@@ -84,6 +88,7 @@ namespace IngameScript
             CurrentStatus.IngotContainers = Containers.IngotContainers.Count();
             CurrentStatus.CompContainers = Containers.ComponentContainers.Count();
             CurrentStatus.ToolsContainers = Containers.ToolsContainers.Count();
+            CurrentStatus.AmmoContainers = Containers.AmmoContainers.Count();
 
             while (containers.Equals(Containers))
             {
@@ -97,7 +102,6 @@ namespace IngameScript
                     foreach (var item in items)
                     {
                         IEnumerable<IMyCargoContainer> materialContainers = null;
-                        var amount = item.Amount;
                         switch (item.Type.TypeId)
                         {
                             case "MyObjectBuilder_Ore":
@@ -120,7 +124,7 @@ namespace IngameScript
                         }
                         if (materialContainers != null && !materialContainers.Any(c => c == inventory.Owner))
                         {
-                            var freeContainer = materialContainers.FirstOrDefault(c => c.GetInventory().CanItemsBeAdded(amount, item.Type));
+                            var freeContainer = materialContainers.FirstOrDefault(c => c.GetInventory().CanItemsBeAdded(item.Amount, item.Type));
                             if (freeContainer != default(IMyCargoContainer))
                                 inventory.TransferItemTo(freeContainer.GetInventory(), item);
                         }
